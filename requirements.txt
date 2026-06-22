@@ -20,9 +20,10 @@ python-box==6.0.2
 
 gdown==6.1.0
 
-ensure==1.0.2
 
 joblib==1.5.3
+
+-e .
 
 
 
