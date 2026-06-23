@@ -10,3 +10,7 @@ data_transformation:
   root_dir: artifacts/data_transformation
   data_path: data/BRAIN MRI
   img_size: 128
+
+model_training:
+  root_dir: artifacts/model_training
+  train_data_path: artifacts/data_transformation/X_train.npy
