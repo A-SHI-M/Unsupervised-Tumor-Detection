@@ -71,6 +71,7 @@ class BiGANTrainer:
         return with_perceptual if perceptual_model is not None else without_perceptual
 
     def train(self):
+        mlflow.set_tracking_uri("mlruns")
         x_train = self._prepare_data()
         progress_dir = self.config.root_dir / "progress_images"
         create_directories([self.config.root_dir, progress_dir])
@@ -190,7 +191,7 @@ class BiGANTrainer:
                 model.save(artifact_path)
                 shutil.copy(artifact_path, trained_path)
                 mlflow.log_artifact(artifact_path)
-                logger.info(f"Saved {name} → {artifact_path} and {trained_path}")
+                logger.info(f"Saved {name} -> {artifact_path} and {trained_path}")
 
             # Plot loss curves
             fig, axes = plt.subplots(1, 3, figsize=(15, 4))
