@@ -195,6 +195,7 @@ class ModelEvaluator:
 
         metrics_path = self.config.root_dir / "metrics.json"
         save_json(metrics_path, metrics)
+        save_json(self.config.model_path / "metrics.json", metrics)
         logger.info(f"Metrics saved to {metrics_path}")
 
         load_dotenv()

@@ -11,7 +11,7 @@ from PIL import Image
 from scipy.ndimage import gaussian_filter
 
 PARAMS_PATH = Path("params.yaml")
-METRICS_PATH = Path("artifacts/model_evaluation/metrics.json")
+METRICS_PATH = Path("trainedmodels/metrics.json")
 MODELS_DIR = Path("trainedmodels")
 DEFAULT_THRESHOLD = 0.05
 
@@ -33,7 +33,7 @@ def load_threshold():
         with open(METRICS_PATH) as f:
             data = json.load(f)
         return float(data["optimal_threshold"]), "from evaluation"
-    return DEFAULT_THRESHOLD, "default (run stage 04 for calibrated threshold)"
+    return DEFAULT_THRESHOLD, "default"
 
 
 def preprocess_image(uploaded_file, img_size: int) -> np.ndarray:
@@ -52,35 +52,33 @@ def compute_anomaly_score(arr, encoder, generator):
         tf.convert_to_tensor(recon),
         max_val=1.0,
     ).numpy()[0]
-    ssim_err = float(1.0 - ssim_val)
-    score = 0.7 * mse + 0.3 * ssim_err
+    score = 0.7 * mse + 0.3 * float(1.0 - ssim_val)
     return score, recon
 
 
 def build_error_map(arr, recon):
     error = np.square(arr[0, ..., 0] - recon[0, ..., 0])
     error = gaussian_filter(error, sigma=3)
-    vmin, vmax = error.min(), error.max()
-    error = (error - vmin) / (vmax - vmin + 1e-8)
+    error = (error - error.min()) / (error.max() - error.min() + 1e-8)
     return error
 
 
-def render_image_panel(title, img_array, cmap="gray"):
-    fig, ax = plt.subplots(figsize=(3, 3))
+def make_figure(img_array, title, cmap="gray"):
+    fig, ax = plt.subplots(figsize=(4, 4))
     ax.imshow(img_array, cmap=cmap, vmin=0, vmax=1)
-    ax.set_title(title, fontsize=10)
+    ax.set_title(title, fontsize=12, fontweight="bold")
     ax.axis("off")
-    fig.tight_layout(pad=0.5)
+    fig.tight_layout(pad=0.3)
     return fig
 
 
-def render_overlay(original, error_map):
-    fig, ax = plt.subplots(figsize=(3, 3))
+def make_overlay_figure(original, error_map, title):
+    fig, ax = plt.subplots(figsize=(4, 4))
     ax.imshow(original, cmap="gray", vmin=0, vmax=1)
     ax.imshow(error_map, cmap="jet", alpha=0.5, vmin=0, vmax=1)
-    ax.set_title("Overlay", fontsize=10)
+    ax.set_title(title, fontsize=12, fontweight="bold")
     ax.axis("off")
-    fig.tight_layout(pad=0.5)
+    fig.tight_layout(pad=0.3)
     return fig
 
 
@@ -95,93 +93,48 @@ def main():
     img_size = params["IMG_SIZE"]
     threshold, threshold_source = load_threshold()
 
-    with st.sidebar:
-        st.header("Model Info")
-        st.markdown(f"**Image size:** {img_size}×{img_size}")
-        st.markdown(f"**Threshold:** `{threshold:.4f}` ({threshold_source})")
-        st.divider()
-        st.markdown("**How it works**")
-        st.markdown(
-            "A BiGAN model is trained on healthy brain MRIs only. "
-            "At inference, the encoder maps the uploaded image to a latent code, "
-            "and the generator reconstructs it. Healthy images reconstruct well; "
-            "tumor regions cause high reconstruction error. "
-            "The anomaly score combines 70% pixel MSE and 30% SSIM error."
-        )
+    st.title("Brain Tumor Detection")
 
-    st.title("🧠 Brain Tumor Detection — Anomaly Analysis")
-    st.markdown("Upload a brain MRI scan to check for anomalies using unsupervised reconstruction-based detection.")
-
-    if threshold_source == "default (run stage 04 for calibrated threshold)":
-        st.warning("Stage 04 evaluation has not been run. Using default threshold — results may be less accurate.")
+    if threshold_source == "default":
+        st.warning("Evaluation metrics not found — using default threshold (0.05).")
 
     uploaded_file = st.file_uploader(
         "Upload a brain MRI image",
         type=["jpg", "jpeg", "png"],
-        help="Grayscale or color JPEG/PNG — will be converted to grayscale internally",
     )
 
     if uploaded_file is None:
-        st.info("Upload an image above to start analysis.")
+        st.info("Upload an image to start analysis.")
         return
 
-    with st.spinner("Loading models and analyzing image…"):
+    with st.spinner("Analyzing image…"):
         encoder, generator = load_models()
         arr = preprocess_image(uploaded_file, img_size)
         score, recon = compute_anomaly_score(arr, encoder, generator)
 
     is_tumor = score >= threshold
 
-    st.divider()
-
     if is_tumor:
         st.error("⚠️ TUMOR DETECTED")
     else:
         st.success("✅ HEALTHY")
 
-    col_score, col_thresh, col_status = st.columns(3)
-    col_score.metric("Anomaly Score", f"{score:.4f}")
-    col_thresh.metric("Threshold", f"{threshold:.4f}")
-    col_status.metric("Status", "Abnormal" if is_tumor else "Normal")
-
-    st.divider()
-
     orig = arr[0, ..., 0]
-    rec = recon[0, ..., 0]
 
     if is_tumor:
         error_map = build_error_map(arr, recon)
-
-        st.markdown("#### Reconstruction Analysis")
-        c1, c2, c3, c4 = st.columns(4)
-        with c1:
-            st.pyplot(render_image_panel("Original", orig))
-        with c2:
-            st.pyplot(render_image_panel("Reconstruction", rec))
-        with c3:
-            fig, ax = plt.subplots(figsize=(3, 3))
-            im = ax.imshow(error_map, cmap="jet", vmin=0, vmax=1)
-            ax.set_title("Error Heatmap", fontsize=10)
-            ax.axis("off")
-            plt.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
-            fig.tight_layout(pad=0.5)
-            st.pyplot(fig)
-            plt.close(fig)
-        with c4:
-            st.pyplot(render_overlay(orig, error_map))
-
-        st.info(
-            "Red/yellow regions show where the model's reconstruction error is highest — "
-            "these areas deviate most from what a healthy brain MRI should look like."
-        )
+        col1, col2 = st.columns(2)
+        with col1:
+            st.pyplot(make_figure(orig, "MRI Scan"))
+            plt.close("all")
+        with col2:
+            st.pyplot(make_overlay_figure(orig, error_map, "Tumor Region"))
+            plt.close("all")
     else:
-        st.markdown("#### Reconstruction Analysis")
-        c1, c2 = st.columns(2)
-        with c1:
-            st.pyplot(render_image_panel("Original", orig))
-        with c2:
-            st.pyplot(render_image_panel("Reconstruction", rec))
-        st.info("The reconstruction closely matches the original — no significant anomaly detected.")
+        _, col, _ = st.columns([1, 2, 1])
+        with col:
+            st.pyplot(make_figure(orig, "MRI Scan"))
+            plt.close("all")
 
 
 if __name__ == "__main__":
