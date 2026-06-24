@@ -2,8 +2,8 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
-COPY requirements.txt setup.py ./
-RUN pip install --no-cache-dir -r requirements.txt
+COPY requirements.txt ./
+RUN grep -v "^-e" requirements.txt | pip install --no-cache-dir -r /dev/stdin
 
 COPY app.py params.yaml ./
 
