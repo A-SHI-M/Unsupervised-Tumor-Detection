@@ -71,7 +71,8 @@ class BiGANTrainer:
         return with_perceptual if perceptual_model is not None else without_perceptual
 
     def train(self):
-        mlflow.set_tracking_uri("mlruns")
+        PROJECT_ROOT = Path(__file__).parents[3]
+        mlflow.set_tracking_uri(str(PROJECT_ROOT / "mlruns"))
         x_train = self._prepare_data()
         progress_dir = self.config.root_dir / "progress_images"
         create_directories([self.config.root_dir, progress_dir])

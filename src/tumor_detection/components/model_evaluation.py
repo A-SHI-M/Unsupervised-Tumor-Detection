@@ -196,6 +196,9 @@ class ModelEvaluator:
         save_json(metrics_path, metrics)
         logger.info(f"Metrics saved to {metrics_path}")
 
+        PROJECT_ROOT = Path(__file__).parents[3]
+        mlflow.set_tracking_uri(str(PROJECT_ROOT / "mlruns"))
+
         run_id_file = self.config.model_path / "mlflow_run_id.txt"
         if run_id_file.exists():
             run_id = run_id_file.read_text().strip()
