@@ -1,10 +1,11 @@
+import os
 import numpy as np
 import tensorflow as tf
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import mlflow
-from pathlib import Path
+from dotenv import load_dotenv
 from sklearn.metrics import (
     roc_curve, auc, precision_recall_curve, average_precision_score,
     accuracy_score, precision_score, recall_score, f1_score, confusion_matrix,
@@ -196,8 +197,8 @@ class ModelEvaluator:
         save_json(metrics_path, metrics)
         logger.info(f"Metrics saved to {metrics_path}")
 
-        PROJECT_ROOT = Path(__file__).parents[3]
-        mlflow.set_tracking_uri(str(PROJECT_ROOT / "mlruns"))
+        load_dotenv()
+        mlflow.set_tracking_uri(os.environ["MLFLOW_TRACKING_URI"])
 
         run_id_file = self.config.model_path / "mlflow_run_id.txt"
         if run_id_file.exists():

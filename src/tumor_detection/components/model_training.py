@@ -1,3 +1,4 @@
+import os
 import sys
 import shutil
 import numpy as np
@@ -7,6 +8,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import mlflow
 from pathlib import Path
+from dotenv import load_dotenv
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.applications.vgg16 import preprocess_input
 
@@ -71,8 +73,10 @@ class BiGANTrainer:
         return with_perceptual if perceptual_model is not None else without_perceptual
 
     def train(self):
-        PROJECT_ROOT = Path(__file__).parents[3]
-        mlflow.set_tracking_uri(str(PROJECT_ROOT / "mlruns"))
+        load_dotenv()
+        mlflow.set_tracking_uri(os.environ["MLFLOW_TRACKING_URI"])
+        os.environ.setdefault("MLFLOW_TRACKING_USERNAME", os.getenv("MLFLOW_TRACKING_USERNAME", ""))
+        os.environ.setdefault("MLFLOW_TRACKING_PASSWORD", os.getenv("MLFLOW_TRACKING_PASSWORD", ""))
         x_train = self._prepare_data()
         progress_dir = self.config.root_dir / "progress_images"
         create_directories([self.config.root_dir, progress_dir])
