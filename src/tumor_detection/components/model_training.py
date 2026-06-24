@@ -117,6 +117,7 @@ class BiGANTrainer:
         with mlflow.start_run(run_name="training") as run:
             run_id_file = self.config.root_dir / "mlflow_run_id.txt"
             run_id_file.write_text(run.info.run_id)
+            (Path("trainedmodels") / "mlflow_run_id.txt").write_text(run.info.run_id)
             logger.info(f"MLflow run ID: {run.info.run_id}")
             mlflow.log_params({
                 "epochs": self.config.epochs,
