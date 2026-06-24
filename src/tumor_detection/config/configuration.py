@@ -1,6 +1,6 @@
 from tumor_detection.constants import CONFIG_FILE_PATH, PARAMS_FILE_PATH
 from tumor_detection.utils import read_yaml, create_directories
-from tumor_detection.entity.config_entity import DataIngestionConfig, DataTransformationConfig, ModelTrainingConfig
+from tumor_detection.entity.config_entity import DataIngestionConfig, DataTransformationConfig, ModelTrainingConfig, ModelEvaluationConfig
 from pathlib import Path
 
 
@@ -43,4 +43,14 @@ class ConfigurationManager:
             lr_discriminator=params.LR_DISCRIMINATOR,
             lr_bigan=params.LR_BIGAN,
             lr_reconstruction=params.LR_RECONSTRUCTION,
+        )
+
+    def get_model_evaluation_config(self) -> ModelEvaluationConfig:
+        config = self.config.model_evaluation
+        create_directories([config.root_dir])
+        return ModelEvaluationConfig(
+            root_dir=Path(config.root_dir),
+            test_data_path=Path(config.test_data_path),
+            model_path=Path(config.model_path),
+            img_size=self.params.IMG_SIZE,
         )

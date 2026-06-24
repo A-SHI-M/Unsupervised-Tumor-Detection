@@ -29,3 +29,11 @@ class ModelTrainingConfig:
     lr_discriminator: float
     lr_bigan: float
     lr_reconstruction: float
+
+
+@dataclass(frozen=True)
+class ModelEvaluationConfig:
+    root_dir: Path
+    test_data_path: Path
+    model_path: Path
+    img_size: int

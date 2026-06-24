@@ -14,3 +14,8 @@ data_transformation:
 model_training:
   root_dir: artifacts/model_training
   train_data_path: artifacts/data_transformation/X_train.npy
+
+model_evaluation:
+  root_dir: artifacts/model_evaluation
+  test_data_path: artifacts/data_transformation
+  model_path: trainedmodels
