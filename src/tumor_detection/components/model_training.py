@@ -94,12 +94,8 @@ class BiGANTrainer:
             self.config.latent_dim, self.img_shape, self.config.lr_bigan,
         )
 
-        try:
-            perceptual_model = build_perceptual_model(self.img_shape)
-            logger.info("Using perceptual loss with VGG16")
-        except Exception:
-            perceptual_model = None
-            logger.info("VGG16 unavailable — using standard combined loss")
+        perceptual_model = None
+        logger.info("Using pixel-level combined loss (0.6×MSE + 0.3×MAE + 0.1×SSIM)")
 
         recon_model = build_reconstruction_model(
             encoder, generator, self.img_shape, self.config.lr_reconstruction
