@@ -157,7 +157,7 @@ Training is done in two phases, both using only the healthy training images:
 
 **Phase 1 — Reconstruction Pre-training (150 epochs)**
 The encoder and generator are trained together to minimise reconstruction error:
-> `Loss = 0.6 × MSE + 0.3 × MAE + 0.1 × (1 − SSIM)`
+> `Loss = 0.6 × MSE + 0.3 × MAE + 0.1 × SSIM`
 
 **Phase 2 — Joint BiGAN Training (500 epochs)**
 The full BiGAN is trained adversarially. The discriminator learns to distinguish real image–latent pairs from fake ones, while the encoder and generator jointly learn to fool it.
@@ -190,7 +190,7 @@ Trained model weights are saved to `trainedmodels/` as `encoder.keras`, `generat
 
 Each test image is passed through the encoder and generator to produce a reconstruction. The **anomaly score** is computed as:
 
-> `Anomaly Score = 0.7 × MSE(original, reconstruction) + 0.3 × (1 − SSIM)`
+> `Anomaly Score = 0.7 × MSE + 0.3 × SSIM`
 
 Scores above the optimal threshold (`0.1202`) are classified as **Tumor**; below as **Healthy**.
 
