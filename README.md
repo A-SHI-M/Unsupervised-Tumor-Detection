@@ -314,17 +314,19 @@ Opens at `http://localhost:8501`. Upload and use the app identically to the loca
 
 ### Screenshots
 
+**Docker app running:**
+
+![Docker App](screenshots/docker_app_running.jpg)
+
 **Tumor prediction output:**
 
 ![Tumor Output](screenshots/demo_output_tumor.jpg)
 
 **Healthy prediction output:**
 
-![Healthy Output](screenshots/demon_output_healthy.jpg)
+![Healthy Output](screenshots/demo_output_healthy.jpg)
 
-**Docker app running:**
 
-![Docker App](screenshots/docker_app_running.jpg)
 
 ---
 
